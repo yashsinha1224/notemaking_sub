@@ -1,9 +1,7 @@
-// Edit page component - app/edit/[noteId]/page.tsx
 'use client'
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
-import Notes from '../../../Json/Notes.json';
 
 const EditNotePage = () => {
   const router = useRouter();
@@ -11,54 +9,75 @@ const EditNotePage = () => {
   const noteId = params.NoteId as string;
 
   const [noteData, setNoteData] = useState({
-    noteId: '',
+    _id: '',
+    name: '',
     description: '',
     note: ''
   });
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchNoteData = () => {
-      // Use the imported Notes directly
-      const currentNote = Notes.find((note: any) => note.noteId === noteId);
-      
-      if (currentNote) {
-        setNoteData(currentNote);
-      } else {
-        console.log('Note not found:', noteId);
-        // Optionally redirect back or show error
+    const fetchNoteData = async () => {
+      try {
+        console.log('Fetching note for ID:', noteId);
+        const response = await fetch(`/api/Notes/${noteId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const note = await response.json();
+        setNoteData({
+          _id: note._id,
+          name: note.name,
+          description: note.description,
+          note: note.note
+        });
+      } catch (error) {
+        console.error('Error fetching note:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    console.log('Fetching note for ID:', noteId);
+
     if (noteId) {
       fetchNoteData();
     }
   }, [noteId]);
 
-  const handleSave = () => {
-    console.log('Saving note:', noteData);
-    
-    // Since you're using a static JSON file, you have a few options:
-    
-    // Option 1: Use localStorage to store modified notes
-    let savedNotes = [];
+  const handleSave = async () => {
     try {
-      savedNotes = JSON.parse(localStorage.getItem('modifiedNotes') || '[]');
+      setSaving(true);
+      console.log('Saving note:', noteData);
+      
+      const response = await fetch(`/api/Notes/${noteId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: noteData.name,
+          description: noteData.description,
+          note: noteData.note
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const updatedNote = await response.json();
+      console.log('Note saved successfully:', updatedNote);
+      
+      router.push('/');
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
-      savedNotes = [];
+      console.error('Error saving note:', error);
+      alert('Failed to save note. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    
-    // Remove existing note with same ID and add updated one
-    const filteredNotes = savedNotes.filter((note: any) => note.noteId !== noteId);
-    const updatedNotes = [...filteredNotes, noteData];
-    
-    localStorage.setItem('modifiedNotes', JSON.stringify(updatedNotes));
-    
-    // Navigate back to home
-    router.push('/');
   };
 
   const handleBack = () => {
@@ -73,8 +92,7 @@ const EditNotePage = () => {
     );
   }
 
-  // If note not found
-  if (!noteData.noteId) {
+  if (!noteData._id) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -111,10 +129,11 @@ const EditNotePage = () => {
         
         <button
           onClick={handleSave}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          disabled={saving}
+          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
         >
           <Save size={16} />
-          <span>Save</span>
+          <span>{saving ? 'Saving...' : 'Save'}</span>
         </button>
       </header>
       
@@ -122,14 +141,14 @@ const EditNotePage = () => {
         <div className="w-full p-6 flex flex-col space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Note ID
+              Note Name
             </label>
             <input
               type="text"
-              value={noteData.noteId}
-              onChange={(e) => setNoteData({ ...noteData, noteId: e.target.value })}
+              value={noteData.name}
+              onChange={(e) => setNoteData({ ...noteData, name: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter note ID"
+              placeholder="Enter note name"
             />
           </div>
 
