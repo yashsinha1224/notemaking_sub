@@ -1,0 +1,32 @@
+[
+    {
+      "noteId": "note-001",
+      "description": "Meeting Notes",
+      "note": "Discussed quarterly planning and budget allocation for the next phase of the project. Need to follow up with stakeholders by Friday."
+    },
+    {
+      "noteId": "note-002", 
+      "description": "Project Ideas",
+      "note": "Brainstormed new features for the mobile app including dark mode, push notifications, and offline sync capabilities."
+    },
+    {
+      "noteId": "note-003",
+      "description": "Grocery List",
+      "note": "Milk, eggs, bread, apples, chicken breast, pasta, olive oil, onions, garlic, tomatoes"
+    },
+    {
+      "noteId": "note-004",
+      "description": "Book Recommendations",
+      "note": "The Design of Everyday Things by Don Norman, Atomic Habits by James Clear, System Design Interview by Alex Xu"
+    },
+    {
+      "noteId": "note-005",
+      "description": "Weekend Plans",
+      "note": "Visit the art museum, try the new coffee shop downtown, finish reading the current novel, call mom and dad"
+    },
+    {
+      "noteId": "note-006",
+      "description": "Learning Goals",
+      "note": "Master React hooks, learn TypeScript fundamentals, practice algorithm problems, read about system design patterns"
+    }
+  ]
