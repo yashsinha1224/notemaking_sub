@@ -2,15 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
-import NoteBox from '../../app/Components/ListBox';
+
+import NoteBox from '../../../Components/ListBox';
 
 const HomePage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  const TEMP_USER_ID = "68b72fb98e98948ac07764bb"; 
+   const params = useParams();
+  const TEMP_USER_ID = params.id as string;
   const router = useRouter();
 
   useEffect(() => {
@@ -18,89 +21,71 @@ const HomePage = () => {
     fetchUser();
   }, []);
 
-  const fetchUser = async () => {
-    try {
-      const response = await fetch('/api/Users');
-      const users = await response.json();
-      if (users.length > 0) {
-        setUser(users[0]);
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error);
+const fetchUser = async () => {
+  try {
+    const response = await fetch(`/api/Users/${TEMP_USER_ID}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
-
-   const fetchNotes = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/Notes');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const fetchedNotes = await response.json();
-      
-      const transformedNotes = fetchedNotes.map(note => ({
-        noteId: note._id,
-        description: note.description,
-        note: note.note,
-        name: note.name
-      }));
-      
-      setNotes(transformedNotes);
-    } catch (error) {
-      console.error('Error fetching notes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteNote = async (noteId) => {
-    try {
-      setNotes(notes.filter(note => note.noteId !== noteId));
-      
-    } catch (error) {
-      console.error('Error deleting note:', error);
-    }
-  };
-
-  const handleNoteClick = (noteId: string) => {
-    router.push(`/Pages/Edit/${noteId}`);
-  };
-
-  const createTestNote = async () => {
-    try {
-      const testNote = {
-        name: "Test Note",
-        description: "API Test Note",
-        note: "This note was created via API!",
-        userId: TEMP_USER_ID
-      };
-
-      const response = await fetch('/api/notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(testNote)
-      });
-
-      if (response.ok) {
-        fetchNotes();
-      }
-    } catch (error) {
-      console.error('Error creating test note:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className='w-full h-screen flex items-center justify-center bg-white'>
-        <div className="text-gray-600">Loading notes...</div>
-      </div>
-    );
+    const user = await response.json();
+    setUser(user);
+    alert("this is correct till here") // user is a single object, not an array
+  } catch (error) {
+    console.error('Error fetching user:', error);
   }
+};
+
+const fetchNotes = async () => {
+  try {
+    setLoading(true);
+    const response = await fetch('/api/Notes'); // lowercase "notes"
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const fetchedNotes = await response.json();
+     const userNotes = fetchedNotes.filter((note: any) => 
+        note.userId === TEMP_USER_ID || note.userId._id === TEMP_USER_ID  );
+
+    const transformedNotes = userNotes.map((note: any) => ({
+      noteId: note._id,
+      description: note.description,
+      note: note.note,
+      name: note.name
+    }));
+    
+    setNotes(transformedNotes);
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleDeleteNote = async (noteId: string) => {
+  try {
+    setNotes(notes.filter(note => note.noteId !== noteId));
+    // optional: call DELETE API here later
+  } catch (error) {
+    console.error('Error deleting note:', error);
+  }
+};
+
+const handleNoteClick = (noteId: string) => {
+  router.push(`/Pages/Edit/${noteId}`);
+};
+
+
+
+if (loading) {
+  return (
+    <div className='w-full h-screen flex items-center justify-center bg-white'>
+      <div className="text-gray-600">Loading notes...</div>
+    </div>
+  );
+}
+
 
   return (
     <div className='w-full h-screen flex items-center justify-between bg-white text-black flex-col'>
@@ -114,17 +99,12 @@ const HomePage = () => {
         
         <div className="flex space-x-2">
           <button 
-            onClick={() => router.push('/Pages/Create')}
+            onClick={() => router.push(`/Pages/Create/${TEMP_USER_ID}`)}
             className="px-4 py-2 bg-green-500 text-white rounded text-sm hover:bg-green-600 font-medium"
           >
             + New Note
           </button>
-          <button 
-            onClick={createTestNote}
-            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-          >
-            Add Test Note
-          </button>
+       
         </div>
       </header>
       

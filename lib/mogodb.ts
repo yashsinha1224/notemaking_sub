@@ -46,6 +46,60 @@ const noteSchema = new mongoose.Schema({
   timestamps: true
 })
 
+// OTP Schema - for OTP authentication
+const otpSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  email: {
+    type: String,
+    required: true,
+    lowercase: true,
+    trim: true
+  },
+  otp: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: 300 // 5 minutes in seconds - document auto-deletes
+  }
+})
+const signupOtpSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    lowercase: true,
+    trim: true,
+    unique: true
+  },
+  otp: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: 300 // auto-delete after 5 minutes
+  }
+})
+// Create indexes for better performance
+otpSchema.index({ userId: 1, createdAt: -1 })
+otpSchema.index({ email: 1, createdAt: -1 })
+signupOtpSchema.index({ email: 1, createdAt: -1 })
+
+
 export const User = mongoose.models.User || mongoose.model('User', userSchema)
 export const Note = mongoose.models.Note || mongoose.model('Note', noteSchema)
+export const OTP = mongoose.models.OTP || mongoose.model('OTP', otpSchema)
+export const SignupOTP =mongoose.models.SignupOTP || mongoose.model('SignupOTP', signupOtpSchema)
 export default connectDB

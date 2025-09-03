@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB, { User } from '../../../lib/mogodb'
+import connectDB from '../../../lib/mogodb'
+import { User } from '../../../lib/mogodb'
 
 export async function GET() {
   try {
